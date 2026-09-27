@@ -1,0 +1,52 @@
+export type CountryOption={country:string;code:string;digits:number};
+
+// Common customer countries. The list is kept alphabetically sorted for the UI.
+export const countryCodes:CountryOption[]=[
+ {country:'Australia',code:'+61',digits:9},
+ {country:'Austria',code:'+43',digits:10},
+ {country:'Bangladesh',code:'+880',digits:10},
+ {country:'Belgium',code:'+32',digits:9},
+ {country:'Brazil',code:'+55',digits:11},
+ {country:'Canada',code:'+1',digits:10},
+ {country:'China',code:'+86',digits:11},
+ {country:'Czech Republic',code:'+420',digits:9},
+ {country:'Denmark',code:'+45',digits:8},
+ {country:'Egypt',code:'+20',digits:10},
+ {country:'Finland',code:'+358',digits:10},
+ {country:'France',code:'+33',digits:9},
+ {country:'Germany',code:'+49',digits:10},
+ {country:'Greece',code:'+30',digits:10},
+ {country:'Hong Kong',code:'+852',digits:8},
+ {country:'India',code:'+91',digits:10},
+ {country:'Indonesia',code:'+62',digits:10},
+ {country:'Ireland',code:'+353',digits:9},
+ {country:'Israel',code:'+972',digits:9},
+ {country:'Italy',code:'+39',digits:10},
+ {country:'Japan',code:'+81',digits:10},
+ {country:'Malaysia',code:'+60',digits:9},
+ {country:'Mexico',code:'+52',digits:10},
+ {country:'Netherlands',code:'+31',digits:9},
+ {country:'New Zealand',code:'+64',digits:9},
+ {country:'Norway',code:'+47',digits:8},
+ {country:'Pakistan',code:'+92',digits:10},
+ {country:'Philippines',code:'+63',digits:10},
+ {country:'Poland',code:'+48',digits:9},
+ {country:'Portugal',code:'+351',digits:9},
+ {country:'Qatar',code:'+974',digits:8},
+ {country:'Saudi Arabia',code:'+966',digits:9},
+ {country:'Singapore',code:'+65',digits:8},
+ {country:'South Africa',code:'+27',digits:9},
+ {country:'South Korea',code:'+82',digits:10},
+ {country:'Spain',code:'+34',digits:9},
+ {country:'Sweden',code:'+46',digits:9},
+ {country:'Switzerland',code:'+41',digits:9},
+ {country:'Thailand',code:'+66',digits:9},
+ {country:'Turkey',code:'+90',digits:10},
+ {country:'United Arab Emirates',code:'+971',digits:9},
+ {country:'United Kingdom',code:'+44',digits:10},
+ {country:'United States',code:'+1',digits:10},
+ {country:'Vietnam',code:'+84',digits:9}
+];
+
+export function getCountry(country:string){return countryCodes.find(c=>c.country===country);}
+export function getCountryByCode(country:string,code:string){return countryCodes.find(c=>c.country===country&&c.code===code);}

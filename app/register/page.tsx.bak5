@@ -1,0 +1,717 @@
+﻿"use client";
+
+import Link from "next/link";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { saveSession } from "../lib";
+import { Logo } from "../components";
+import { countryCodes, getCountry } from "../countries";
+
+const DOCUMENT_TYPES = [
+  {
+    value: "ID Card",
+    hint: "National / government-issued ID",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+        <circle cx="8" cy="12" r="2.2" />
+        <path d="M5.2 16.3c.5-1.5 1.7-2.3 2.8-2.3s2.3.8 2.8 2.3" strokeLinecap="round" />
+        <path d="M13.5 9.5h5M13.5 12h5M13.5 14.5h3" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    value: "Passport",
+    hint: "Photo page of your passport",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="4" y="2.5" width="16" height="19" rx="2" />
+        <circle cx="12" cy="10" r="3" />
+        <path d="M8.3 16c.6-1.7 2-2.6 3.7-2.6s3.1.9 3.7 2.6" strokeLinecap="round" />
+        <path d="M8 5.5h8" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    value: "Driving License",
+    hint: "Front side of your license",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="2.5" y="6" width="19" height="12" rx="2.5" />
+        <circle cx="7.8" cy="12" r="1.8" />
+        <path d="M13 10h6M13 12.5h6M13 15h4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    value: "Social Security Card",
+    hint: "Original SSN card",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+        <path d="M6 9.5h5M6 12h9M6 14.5h9" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+];
+
+function FileUploadField({
+  label,
+  value,
+  onChange,
+  onRemove,
+  hint,
+  compact,
+}: {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemove: () => void;
+  hint?: string;
+  compact?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="upload-field">
+      <span className="upload-field-label">{label}</span>
+
+      <div className={`upload-box ${compact ? "compact" : ""} ${value ? "has-file" : ""}`}>
+        {value ? (
+          <>
+            <img src={value} alt="" className="upload-preview" />
+            <div className="upload-box-overlay">
+              <button type="button" className="upload-chip" onClick={() => inputRef.current?.click()}>
+                Change
+              </button>
+              <button type="button" className="upload-chip danger" onClick={onRemove}>
+                Remove
+              </button>
+            </div>
+            <span className="upload-check" aria-hidden>
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.6">
+                <path d="M4 10.5l3.6 3.6L16 5.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          </>
+        ) : (
+          <button type="button" className="upload-placeholder" onClick={() => inputRef.current?.click()}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 15.5V18a2 2 0 002 2h12a2 2 0 002-2v-2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>Click to upload</span>
+          </button>
+        )}
+
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          onChange={onChange}
+          className="upload-input-hidden"
+        />
+      </div>
+
+      {hint && <p className="upload-hint">{hint}</p>}
+    </div>
+  );
+}
+
+export default function Register() {
+  const router = useRouter();
+
+  const [invite, setInvite] = useState("");
+  const [inviteState, setInviteState] = useState<"checking" | "valid" | "invalid">("invalid");
+  const [inviteError, setInviteError] = useState("");
+
+  const [name, setName] = useState("");
+  const [shopName, setShopName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
+  const [country, setCountry] = useState("United States");
+
+  const [pw, setPw] = useState("");
+  const [transactionPassword, setTransactionPassword] = useState("");
+  const [confirmTransactionPassword, setConfirmTransactionPassword] = useState("");
+const [certificateType,setCertificateType] = useState("ID Card");
+const [certificateFront,setCertificateFront] = useState("");
+const [certificateBack,setCertificateBack] = useState("");
+const [selfie,setSelfie] = useState("");
+const [docTypeOpen, setDocTypeOpen] = useState(false);
+const docTypeBoxRef = useRef<HTMLDivElement>(null);
+const selectedDocType = DOCUMENT_TYPES.find((d) => d.value === certificateType) || DOCUMENT_TYPES[0];
+const uploadFile = (
+  e: React.ChangeEvent<HTMLInputElement>,
+  setter: (value:string)=>void
+) => {
+
+  const file = e.target.files?.[0];
+
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    setter(String(reader.result));
+  };
+
+  reader.readAsDataURL(file);
+
+};
+  const [remember, setRemember] = useState(true);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const selected = getCountry(country);
+
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const countryBoxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (countryBoxRef.current && !countryBoxRef.current.contains(e.target as Node)) {
+        setCountryOpen(false);
+        setCountrySearch("");
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  useEffect(() => {
+    const onDocTypeClick = (e: MouseEvent) => {
+      if (docTypeBoxRef.current && !docTypeBoxRef.current.contains(e.target as Node)) {
+        setDocTypeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocTypeClick);
+    return () => document.removeEventListener("mousedown", onDocTypeClick);
+  }, []);
+
+  const filteredCountries = countryCodes.filter((c) =>
+    c.country.toLowerCase().includes(countrySearch.toLowerCase())
+  );
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("invite") || "";
+
+    setInvite(token);
+
+    if (!token) {
+      setInviteState("invalid");
+      return;
+    }
+
+    setInviteState("checking");
+
+    fetch(`/api/invites/${encodeURIComponent(token)}`, {
+      cache: "no-store",
+    })
+      .then(async (r) => {
+        const d = await r.json();
+
+        if (!r.ok || !d.valid) {
+          throw new Error(d.error || "Invalid invitation");
+        }
+
+        setInviteState("valid");
+      })
+      .catch((e) => {
+        setInviteState("invalid");
+        setInviteError(e.message);
+      });
+
+  }, []);
+
+  const changeCountry = (value: string) => {
+    const x = getCountry(value);
+
+    setCountry(value);
+    setCountryCode(x?.code || "+1");
+    setPhone("");
+  };
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    setError("");
+
+    if (transactionPassword.length !== 6 || !/^\d+$/.test(transactionPassword)) {
+      setError("Transaction password must be exactly 6 digits.");
+      return;
+    }
+
+    if (transactionPassword !== confirmTransactionPassword) {
+      setError("Transaction passwords do not match.");
+      return;
+    }
+
+    if (!certificateFront || !certificateBack || !selfie) {
+      setError("Please upload your document (front & back) and a selfie to continue.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+
+      const r = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  name,
+  shopName,
+  email,
+  phone,
+  countryCode,
+  country,
+  password: pw,
+  transactionPassword,
+  remember,
+  inviteToken: invite,
+
+  certificateType,
+  certificateFront,
+  certificateBack,
+  selfie
+}),
+      });
+
+      const data = await r.json();
+
+      if (!r.ok) {
+        throw new Error(data.error || "Unable to create account");
+      }
+
+     saveSession(data.user.role, data.user, data.token);
+
+router.push("/kyc-pending");
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to create account");
+
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <main className="auth-page">
+
+      <div className="auth-logo">
+        <Logo />
+      </div>
+
+      <section className="auth-card">
+
+        <div className="auth-icon">+</div>
+
+        <h1>Create account</h1>
+
+        <p>
+          Start your private Drop Zone workspace.
+        </p>
+
+
+        {inviteState !== "valid" && (
+          <div className="form-error">
+
+            {invite
+              ? inviteState === "checking"
+                ? "Checking invitation..."
+                : inviteError || "This invitation is not valid."
+              : "An invitation link is required to create an account."
+            }
+
+          </div>
+        )}
+
+
+        {inviteState === "valid" && (
+          <div className="info-banner">
+            Invitation accepted
+          </div>
+        )}
+
+
+
+        <form className="auth-form" onSubmit={submit}>
+
+
+          {error && (
+            <div className="form-error">
+              {error}
+            </div>
+          )}
+
+
+
+          <label>
+            Full name
+
+            <input
+              value={name}
+              onChange={(e)=>setName(e.target.value)}
+              placeholder="Your name"
+              required
+            />
+
+          </label>
+
+
+
+          <label>
+            Shop Name
+
+            <input
+              value={shopName}
+              onChange={(e)=>setShopName(e.target.value)}
+              placeholder="Your shop name"
+              required
+            />
+
+          </label>
+
+
+
+          <label>
+            Email
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e)=>setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+
+          </label>
+
+
+
+          <label>
+            Country
+
+            <div className="custom-select" ref={countryBoxRef}>
+              <button
+                type="button"
+                className={`custom-select-trigger ${countryOpen ? "open" : ""}`}
+                onClick={() => setCountryOpen((v) => !v)}
+              >
+                <span>{country}</span>
+                <svg
+                  className={`chevron-icon ${countryOpen ? "rotate" : ""}`}
+                  width="12"
+                  height="12"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              {countryOpen && (
+                <div className="custom-select-menu">
+                  <input
+                    autoFocus
+                    className="custom-select-search"
+                    placeholder="Search country..."
+                    value={countrySearch}
+                    onChange={(e) => setCountrySearch(e.target.value)}
+                  />
+                  <div className="custom-select-list">
+                    {filteredCountries.length === 0 ? (
+                      <div className="custom-select-empty">No matches found.</div>
+                    ) : (
+                      filteredCountries.map((c) => (
+                        <button
+                          type="button"
+                          key={c.country}
+                          className={`custom-select-option ${c.country === country ? "selected" : ""}`}
+                          onClick={() => {
+                            changeCountry(c.country);
+                            setCountryOpen(false);
+                            setCountrySearch("");
+                          }}
+                        >
+                          {c.country}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </label>
+
+
+
+
+          <label>
+            Phone number
+
+
+            <div style={{display:"flex",gap:8}}>
+
+              <select
+                disabled
+                style={{width:110}}
+              >
+
+                <option>
+                  {countryCode}
+                </option>
+
+              </select>
+
+
+
+              <input
+                value={phone}
+                inputMode="numeric"
+                maxLength={selected?.digits || 10}
+                onChange={(e)=>
+                  setPhone(
+                    e.target.value
+                    .replace(/\D/g,"")
+                    .slice(0,selected?.digits || 10)
+                  )
+                }
+                placeholder="Phone number"
+                required
+              />
+
+
+            </div>
+
+          </label>
+
+
+
+
+
+          <label>
+            Password
+
+            <input
+              type="password"
+              value={pw}
+              onChange={(e)=>setPw(e.target.value)}
+              placeholder="At least 6 characters"
+              minLength={6}
+              required
+            />
+
+          </label>
+
+
+
+
+
+          <label>
+            Transaction Password (6 Digit)
+
+
+            <input
+              type="password"
+              value={transactionPassword}
+              maxLength={6}
+              inputMode="numeric"
+              onChange={(e)=>
+                setTransactionPassword(
+                  e.target.value.replace(/\D/g,"")
+                )
+              }
+              placeholder="Enter 6 digit PIN"
+              required
+            />
+
+
+          </label>
+
+
+
+
+
+          <label>
+            Confirm Transaction Password
+
+
+            <input
+              type="password"
+              value={confirmTransactionPassword}
+              maxLength={6}
+              inputMode="numeric"
+              onChange={(e)=>
+                setConfirmTransactionPassword(
+                  e.target.value.replace(/\D/g,"")
+                )
+              }
+              placeholder="Confirm 6 digit PIN"
+              required
+            />
+
+
+          </label>
+
+
+
+<div className="kyc-section">
+
+  <div className="kyc-section-head">
+    <h2>Identity verification</h2>
+    <p>Upload a valid document and a quick selfie so we can verify and secure your account.</p>
+  </div>
+
+  <label>
+    Document type
+
+    <div className="custom-select" ref={docTypeBoxRef}>
+      <button
+        type="button"
+        className={`custom-select-trigger ${docTypeOpen ? "open" : ""}`}
+        onClick={() => setDocTypeOpen((v) => !v)}
+      >
+        <span className="doc-type-label">
+          <span className="doc-type-icon">{selectedDocType.icon}</span>
+          {selectedDocType.value}
+        </span>
+        <svg
+          className={`chevron-icon ${docTypeOpen ? "rotate" : ""}`}
+          width="12"
+          height="12"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+
+      {docTypeOpen && (
+        <div className="custom-select-menu">
+          <div className="custom-select-list">
+            {DOCUMENT_TYPES.map((d) => (
+              <button
+                type="button"
+                key={d.value}
+                className={`custom-select-option doc-type-option ${d.value === certificateType ? "selected" : ""}`}
+                onClick={() => {
+                  setCertificateType(d.value);
+                  setDocTypeOpen(false);
+                }}
+              >
+                <span className="doc-type-icon">{d.icon}</span>
+                <span>
+                  <strong>{d.value}</strong>
+                  <small>{d.hint}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+
+  </label>
+
+  <div className="upload-grid">
+
+    <FileUploadField
+      label="Document front *"
+      value={certificateFront}
+      onChange={(e) => uploadFile(e, setCertificateFront)}
+      onRemove={() => setCertificateFront("")}
+      compact
+    />
+
+    <FileUploadField
+      label="Document back *"
+      value={certificateBack}
+      onChange={(e) => uploadFile(e, setCertificateBack)}
+      onRemove={() => setCertificateBack("")}
+      compact
+    />
+
+  </div>
+
+  <FileUploadField
+    label="Selfie verification *"
+    value={selfie}
+    onChange={(e) => uploadFile(e, setSelfie)}
+    onRemove={() => setSelfie("")}
+    hint="Make sure your face is clearly visible and well lit."
+  />
+
+</div>
+
+          <label className="remember-row">
+
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e)=>setRemember(e.target.checked)}
+            />
+
+            <span>
+              Remember me
+            </span>
+
+          </label>
+
+
+
+
+
+          <button
+            className="btn full"
+            disabled={loading || inviteState !== "valid"}
+            type="submit"
+          >
+
+            {loading ? "Creating..." : "Create account"}
+
+          </button>
+
+
+
+
+        </form>
+
+
+
+
+
+        <p className="switch">
+
+          Already have an account?
+
+          {" "}
+
+          <Link href="/login">
+            Sign in
+          </Link>
+
+        </p>
+
+
+
+      </section>
+
+
+    </main>
+  );
+}
+

@@ -1,0 +1,114 @@
+{
+  "users": [
+    {
+      "id": "admin-001",
+      "name": "Drop Zone Admin",
+      "email": "admin@dropzone.com",
+      "passwordHash": "e6c04fb8bb6f5f4b47e88ac54abaaacf0b1baf86d16e48ec1c1631333755b1f02e3a2c14a36bc90049d61101d071a5c1ac9625d2748205664c6c4c5a55d7f19e",
+      "salt": "1f311082904b759d8685d457fa50946b",
+      "role": "admin",
+      "status": "Active",
+      "createdAt": "2026-08-20T00:00:00.000Z",
+      "balance": 0,
+      "profit": 0
+    },
+    {
+      "id": "888ab861-4e8c-475a-b514-18aa1ca43c49",
+      "name": "zxfg",
+      "username": "fsd",
+      "email": "ds@gmail.com",
+      "phone": "2345234234",
+      "countryCode": "+1",
+      "country": "United States",
+      "profileImage": "",
+      "passwordHash": "c759a4cb8ec7e8f96cdcf55203395836eeba3acabd8d681cc5fb15fe88ca28b2dd0150025a0dd802f9fe21d8bb0c3db75372638f4d912192c617014351f8670c",
+      "salt": "676e8ab92a7505c06a6826a9673726a4",
+      "role": "customer",
+      "status": "Active",
+      "createdAt": "2026-08-22T20:02:35.267Z",
+      "balance": 0,
+      "profit": 0
+    }
+  ],
+  "sessions": {
+    "a5570dd2865cee7a22170ebdd9d7f761061931dd91c68e5cd971be6ce7235f1e": {
+      "userId": "admin-001",
+      "expiresAt": 1790011353647
+    },
+    "b5581337bb1e6014b46e6a787a96bbf93196c0fbcee7393c726331a087eacfe7": {
+      "userId": "admin-001",
+      "expiresAt": 1790020906370
+    },
+    "c7ee28bf66913e3b0e492fde066492a0738453bcf3de0ab3642ebeb0d66c59ff": {
+      "userId": "888ab861-4e8c-475a-b514-18aa1ca43c49",
+      "expiresAt": 1790020955267
+    },
+    "35f993cbbd295b0c2260cb0822501aecc24b91af898e08c14ffa8abf53efbd2f": {
+      "userId": "admin-001",
+      "expiresAt": 1790062320349
+    },
+    "f75406ef6a13d587cddd40e0bac66144bec1f7ddded9d2891c9c611fac000a96": {
+      "userId": "admin-001",
+      "expiresAt": 1790073312446
+    }
+  },
+  "activity": [
+    {
+      "id": "0c5ab7ca-da49-4518-9b66-62c3f94a6016",
+      "userId": "admin-001",
+      "action": "LOGIN",
+      "description": "Successful login",
+      "createdAt": "2026-08-23T10:35:12.445Z"
+    },
+    {
+      "id": "a7a65698-de23-4fe9-aa0f-b352b9949f5b",
+      "userId": "admin-001",
+      "action": "LOGIN",
+      "description": "Successful login",
+      "createdAt": "2026-08-23T07:32:00.348Z"
+    },
+    {
+      "id": "a994c149-935c-4ee2-a19e-de5411001638",
+      "userId": "888ab861-4e8c-475a-b514-18aa1ca43c49",
+      "action": "ACCOUNT_CREATED",
+      "description": "Account created using invitation",
+      "createdAt": "2026-08-22T20:02:35.267Z"
+    },
+    {
+      "id": "5577c906-5ec8-4e17-9e4a-e8c4202512f1",
+      "userId": "admin-001",
+      "action": "INVITE_CREATED",
+      "description": "Invitation created; expires in 7 day(s)",
+      "createdAt": "2026-08-22T20:02:02.076Z"
+    },
+    {
+      "id": "9c350d51-6705-4488-b1a6-86e84a323842",
+      "userId": "admin-001",
+      "action": "LOGIN",
+      "description": "Successful login",
+      "createdAt": "2026-08-22T20:01:46.369Z"
+    },
+    {
+      "id": "fc258abf-bf16-4d2e-a074-e6f59ac872a5",
+      "userId": "admin-001",
+      "action": "LOGIN",
+      "description": "Successful login",
+      "createdAt": "2026-08-22T17:22:33.644Z"
+    }
+  ],
+  "conversations": [],
+  "messages": [],
+  "orders": [],
+  "products": [],
+  "invites": [
+    {
+      "id": "ea4b1989-228b-4384-b353-8e249ad0d77e",
+      "token": "YG1sxcpnBVUWiBFtINjtzM17",
+      "createdBy": "admin-001",
+      "createdAt": "2026-08-22T20:02:02.075Z",
+      "expiresAt": 1788033722075,
+      "usedAt": "2026-08-22T20:02:35.267Z",
+      "usedBy": "888ab861-4e8c-475a-b514-18aa1ca43c49"
+    }
+  ]
+}

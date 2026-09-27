@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 140" role="img" aria-label="Nexdrop">
+  <!-- Clean wordmark approximation -->
+  <g font-family="system-ui, -apple-system, Segoe UI, Inter, Arial, sans-serif" font-weight="800" font-size="92">
+    <text x="20" y="98" fill="#14B8A6">Ne</text>
+    <text x="148" y="98" fill="#1E293B">x</text>
+    <text x="208" y="98" fill="#14B8A6">d</text>
+    <text x="268" y="98" fill="#1E293B">rop</text>
+  </g>
+  <!-- Arrow rising from x -->
+  <path d="M175 52 L195 28 L195 42 L220 42 L220 56 L195 56 L195 70 Z" fill="#14B8A6"/>
+</svg>

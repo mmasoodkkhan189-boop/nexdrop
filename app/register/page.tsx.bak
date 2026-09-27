@@ -1,0 +1,682 @@
+﻿"use client";
+
+import Link from "next/link";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { saveSession } from "../lib";
+import { Logo } from "../components";
+import { countryCodes, getCountry } from "../countries";
+
+export default function Register() {
+  const router = useRouter();
+
+  const [invite, setInvite] = useState("");
+  const [inviteState, setInviteState] = useState<"checking" | "valid" | "invalid">("invalid");
+  const [inviteError, setInviteError] = useState("");
+
+  const [name, setName] = useState("");
+  const [shopName, setShopName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
+  const [country, setCountry] = useState("United States");
+
+  const [pw, setPw] = useState("");
+  const [transactionPassword, setTransactionPassword] = useState("");
+  const [confirmTransactionPassword, setConfirmTransactionPassword] = useState("");
+const [certificateType,setCertificateType] = useState("ID Card");
+const [certificateFront,setCertificateFront] = useState("");
+const [certificateBack,setCertificateBack] = useState("");
+const [selfie,setSelfie] = useState("");
+const [certificateFrontName,setCertificateFrontName] = useState("");
+const [certificateBackName,setCertificateBackName] = useState("");
+const [selfieName,setSelfieName] = useState("");
+const certificateFrontRef = useRef<HTMLInputElement>(null);
+const certificateBackRef = useRef<HTMLInputElement>(null);
+const selfieRef = useRef<HTMLInputElement>(null);
+const uploadFile = (
+  e: React.ChangeEvent<HTMLInputElement>,
+  setter: (value:string)=>void,
+  setName?: (value:string)=>void
+) => {
+
+  const file = e.target.files?.[0];
+
+  if(!file) return;
+
+  if (setName) setName(file.name);
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    setter(String(reader.result));
+  };
+
+  reader.readAsDataURL(file);
+
+};
+  const [remember, setRemember] = useState(true);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const selected = getCountry(country);
+
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const countryBoxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (countryBoxRef.current && !countryBoxRef.current.contains(e.target as Node)) {
+        setCountryOpen(false);
+        setCountrySearch("");
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  const filteredCountries = countryCodes.filter((c) =>
+    c.country.toLowerCase().includes(countrySearch.toLowerCase())
+  );
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("invite") || "";
+
+    setInvite(token);
+
+    if (!token) {
+      setInviteState("invalid");
+      return;
+    }
+
+    setInviteState("checking");
+
+    fetch(`/api/invites/${encodeURIComponent(token)}`, {
+      cache: "no-store",
+    })
+      .then(async (r) => {
+        const d = await r.json();
+
+        if (!r.ok || !d.valid) {
+          throw new Error(d.error || "Invalid invitation");
+        }
+
+        setInviteState("valid");
+      })
+      .catch((e) => {
+        setInviteState("invalid");
+        setInviteError(e.message);
+      });
+
+  }, []);
+
+  const changeCountry = (value: string) => {
+const uploadFile = (
+  e: React.ChangeEvent<HTMLInputElement>,
+  setter: any
+) => {
+
+  const file = e.target.files?.[0];
+
+  if(!file) return;
+
+
+  const reader = new FileReader();
+
+
+  reader.onload = () => {
+
+    setter(
+      String(reader.result || "")
+    );
+
+  };
+
+
+  reader.readAsDataURL(file);
+
+};
+    const x = getCountry(value);
+
+    setCountry(value);
+    setCountryCode(x?.code || "+1");
+    setPhone("");
+  };
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    setError("");
+
+    if (transactionPassword.length !== 6 || !/^\d+$/.test(transactionPassword)) {
+      setError("Transaction password must be exactly 6 digits.");
+      return;
+    }
+
+    if (transactionPassword !== confirmTransactionPassword) {
+      setError("Transaction passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+
+      const r = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  name,
+  shopName,
+  email,
+  phone,
+  countryCode,
+  country,
+  password: pw,
+  transactionPassword,
+  remember,
+  inviteToken: invite,
+
+  certificateType,
+  certificateFront,
+  certificateBack,
+  selfie
+}),
+      });
+
+      const data = await r.json();
+
+      if (!r.ok) {
+        throw new Error(data.error || "Unable to create account");
+      }
+
+     saveSession(data.user.role, data.user, data.token);
+
+router.push("/kyc-pending");
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to create account");
+
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <main className="auth-page">
+
+      <div className="auth-logo">
+        <Logo />
+      </div>
+
+      <section className="auth-card">
+
+        <div className="auth-icon">+</div>
+
+        <h1>Create account</h1>
+
+        <p>
+          Start your private Drop Zone workspace.
+        </p>
+
+
+        {inviteState !== "valid" && (
+          <div className="form-error">
+
+            {invite
+              ? inviteState === "checking"
+                ? "Checking invitationâ€¦"
+                : inviteError || "This invitation is not valid."
+              : "An invitation link is required to create an account."
+            }
+
+          </div>
+        )}
+
+
+        {inviteState === "valid" && (
+          <div className="info-banner">
+            Invitation accepted
+          </div>
+        )}
+
+
+
+        <form className="auth-form" onSubmit={submit}>
+
+
+          {error && (
+            <div className="form-error">
+              {error}
+            </div>
+          )}
+
+
+
+          <label>
+            Full name
+
+            <input
+              value={name}
+              onChange={(e)=>setName(e.target.value)}
+              placeholder="Your name"
+              required
+            />
+
+          </label>
+
+
+
+          <label>
+            Shop Name
+
+            <input
+              value={shopName}
+              onChange={(e)=>setShopName(e.target.value)}
+              placeholder="Your shop name"
+              required
+            />
+
+          </label>
+
+
+
+          <label>
+            Email
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e)=>setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+
+          </label>
+
+
+
+          <label>
+            Country
+
+            <div className="custom-select" ref={countryBoxRef}>
+              <button
+                type="button"
+                className={`custom-select-trigger ${countryOpen ? "open" : ""}`}
+                onClick={() => setCountryOpen((v) => !v)}
+              >
+                <span>{country}</span>
+                <svg
+                  className={`chevron-icon ${countryOpen ? "rotate" : ""}`}
+                  width="12"
+                  height="12"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              {countryOpen && (
+                <div className="custom-select-menu">
+                  <input
+                    autoFocus
+                    className="custom-select-search"
+                    placeholder="Search countryâ€¦"
+                    value={countrySearch}
+                    onChange={(e) => setCountrySearch(e.target.value)}
+                  />
+                  <div className="custom-select-list">
+                    {filteredCountries.length === 0 ? (
+                      <div className="custom-select-empty">No matches found.</div>
+                    ) : (
+                      filteredCountries.map((c) => (
+                        <button
+                          type="button"
+                          key={c.country}
+                          className={`custom-select-option ${c.country === country ? "selected" : ""}`}
+                          onClick={() => {
+                            changeCountry(c.country);
+                            setCountryOpen(false);
+                            setCountrySearch("");
+                          }}
+                        >
+                          {c.country}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </label>
+
+
+
+
+          <label>
+            Phone number
+
+
+            <div style={{display:"flex",gap:8}}>
+
+              <select
+                disabled
+                style={{width:110}}
+              >
+
+                <option>
+                  {countryCode}
+                </option>
+
+              </select>
+
+
+
+              <input
+                value={phone}
+                inputMode="numeric"
+                maxLength={selected?.digits || 10}
+                onChange={(e)=>
+                  setPhone(
+                    e.target.value
+                    .replace(/\D/g,"")
+                    .slice(0,selected?.digits || 10)
+                  )
+                }
+                placeholder="Phone number"
+                required
+              />
+
+
+            </div>
+
+          </label>
+
+
+
+
+
+          <label>
+            Password
+
+            <input
+              type="password"
+              value={pw}
+              onChange={(e)=>setPw(e.target.value)}
+              placeholder="At least 6 characters"
+              minLength={6}
+              required
+            />
+
+          </label>
+
+
+
+
+
+          <label>
+            Transaction Password (6 Digit)
+
+
+            <input
+              type="password"
+              value={transactionPassword}
+              maxLength={6}
+              inputMode="numeric"
+              onChange={(e)=>
+                setTransactionPassword(
+                  e.target.value.replace(/\D/g,"")
+                )
+              }
+              placeholder="Enter 6 digit PIN"
+              required
+            />
+
+
+          </label>
+
+
+
+
+
+          <label>
+            Confirm Transaction Password
+
+
+            <input
+              type="password"
+              value={confirmTransactionPassword}
+              maxLength={6}
+              inputMode="numeric"
+              onChange={(e)=>
+                setConfirmTransactionPassword(
+                  e.target.value.replace(/\D/g,"")
+                )
+              }
+              placeholder="Confirm 6 digit PIN"
+              required
+            />
+
+
+          </label>
+
+
+
+<label>
+  Certificate Type
+
+  <select
+    value={certificateType}
+    onChange={(e)=>setCertificateType(e.target.value)}
+  >
+    <option>ID Card</option>
+    <option>Passport</option>
+    <option>Driving License</option>
+    <option>Social Security Card</option>
+  </select>
+
+</label>
+
+
+<label className="file-drop-label">
+  Certificate Front *
+
+  <div
+    className={`file-drop ${certificateFront ? "has-file" : ""}`}
+    onClick={()=>certificateFrontRef.current?.click()}
+  >
+    {certificateFront ? (
+      <div className="file-drop-preview">
+        <img src={certificateFront} alt="Certificate front preview" />
+        <div className="file-drop-info">
+          <span className="file-drop-name">{certificateFrontName || "Uploaded"}</span>
+          <span className="file-drop-status">✓ Uploaded</span>
+        </div>
+        <button
+          type="button"
+          className="file-drop-change"
+          onClick={(e)=>{e.stopPropagation();certificateFrontRef.current?.click();}}
+        >
+          Change
+        </button>
+      </div>
+    ) : (
+      <div className="file-drop-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M12 16V4m0 0l-4 4m4-4l4 4" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span>Click to upload</span>
+        <small>PNG or JPG</small>
+      </div>
+    )}
+  </div>
+
+  <input
+    ref={certificateFrontRef}
+    className="file-drop-input"
+    type="file"
+    accept="image/*"
+    onChange={(e)=>uploadFile(e,setCertificateFront,setCertificateFrontName)}
+    required
+  />
+
+</label>
+
+
+<label className="file-drop-label">
+  Certificate Back *
+
+  <div
+    className={`file-drop ${certificateBack ? "has-file" : ""}`}
+    onClick={()=>certificateBackRef.current?.click()}
+  >
+    {certificateBack ? (
+      <div className="file-drop-preview">
+        <img src={certificateBack} alt="Certificate back preview" />
+        <div className="file-drop-info">
+          <span className="file-drop-name">{certificateBackName || "Uploaded"}</span>
+          <span className="file-drop-status">✓ Uploaded</span>
+        </div>
+        <button
+          type="button"
+          className="file-drop-change"
+          onClick={(e)=>{e.stopPropagation();certificateBackRef.current?.click();}}
+        >
+          Change
+        </button>
+      </div>
+    ) : (
+      <div className="file-drop-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M12 16V4m0 0l-4 4m4-4l4 4" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span>Click to upload</span>
+        <small>PNG or JPG</small>
+      </div>
+    )}
+  </div>
+
+  <input
+    ref={certificateBackRef}
+    className="file-drop-input"
+    type="file"
+    accept="image/*"
+    onChange={(e)=>uploadFile(e,setCertificateBack,setCertificateBackName)}
+    required
+  />
+
+</label>
+
+
+<label className="file-drop-label">
+  Selfie Verification *
+
+  <div
+    className={`file-drop ${selfie ? "has-file" : ""}`}
+    onClick={()=>selfieRef.current?.click()}
+  >
+    {selfie ? (
+      <div className="file-drop-preview">
+        <img src={selfie} alt="Selfie preview" />
+        <div className="file-drop-info">
+          <span className="file-drop-name">{selfieName || "Uploaded"}</span>
+          <span className="file-drop-status">✓ Uploaded</span>
+        </div>
+        <button
+          type="button"
+          className="file-drop-change"
+          onClick={(e)=>{e.stopPropagation();selfieRef.current?.click();}}
+        >
+          Change
+        </button>
+      </div>
+    ) : (
+      <div className="file-drop-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M12 16V4m0 0l-4 4m4-4l4 4" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span>Click to upload</span>
+        <small>PNG or JPG</small>
+      </div>
+    )}
+  </div>
+
+  <input
+    ref={selfieRef}
+    className="file-drop-input"
+    type="file"
+    accept="image/*"
+    onChange={(e)=>uploadFile(e,setSelfie,setSelfieName)}
+    required
+  />
+
+</label>
+
+          <label className="remember-row">
+
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e)=>setRemember(e.target.checked)}
+            />
+
+            <span>
+              Remember me
+            </span>
+
+          </label>
+
+
+
+
+
+          <button
+            className="btn full"
+            disabled={loading || inviteState !== "valid"}
+            type="submit"
+          >
+
+            {loading ? "Creatingâ€¦" : "Create account"}
+
+          </button>
+
+
+
+
+        </form>
+
+
+
+
+
+        <p className="switch">
+
+          Already have an account?
+
+          {" "}
+
+          <Link href="/login">
+            Sign in
+          </Link>
+
+        </p>
+
+
+
+      </section>
+
+
+    </main>
+  );
+}
